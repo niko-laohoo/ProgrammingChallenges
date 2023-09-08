@@ -1,3 +1,6 @@
+/* Niko Laohoo PMG Technical Assessment Submission */
+
+
 /* 1) Write a query to get the sum of impressions by day. */
 SELECT date, SUM(impressions) 
 FROM(marketing_performance)
@@ -27,11 +30,11 @@ SELECT 	wr.campaign_id,
         SUM(m.impressions) AS total_impressions,
         SUM(m.clicks) AS total_clicks,
         wr.total_revenue         
-FROM	(SELECT campaign_id, 
+FROM	(SELECT campaign_id,  						/* Sub-queries sum revenue for each campaign and get the campaign name */
 				c.campaign_name,
-				SUM(revenue) AS total_revenue
-		FROM 	(SELECT id, 
-						name AS campaign_name
+				SUM(revenue) AS total_revenue  		/* Sub-query to get the total revenue from website_revenue */
+		FROM 	(SELECT id, 						
+						name AS campaign_name 		/* Nested sub-query to get the campaign name from campaign_info */
 				FROM campaign_info) as c
 		INNER JOIN website_revenue AS w
 		ON w.campaign_id = c.id
@@ -58,19 +61,18 @@ ORDER BY SUM(conversions) DESC
 LIMIT 1;
 
 /* 5) In your opinion, which campaign was the most efficient, and why? */
-/* While at first glance Campaign 3 has the highest profit, I believe Campaign5 was the most efficient 
-since it had a significantly higher profit per impression and click as compared to the other campaigns. */
+/* Campaign5 was the most efficient since it had a significantly higher profit per impression and click as compared to the other campaigns. */
 
 SELECT 	wr.campaign_id, 
 		wr.campaign_name,
         wr.total_revenue - SUM(m.cost) AS profit, 
         (wr.total_revenue - SUM(m.cost)) / SUM(m.impressions) AS profit_per_impression,
         (wr.total_revenue - SUM(m.cost)) / SUM(m.clicks) AS profit_per_click
-FROM	(SELECT campaign_id, 
+FROM	(SELECT campaign_id, 						/* Sub-queries sum revenue for each campaign and get the campaign name */
 				c.campaign_name,
-				SUM(revenue) AS total_revenue
+				SUM(revenue) AS total_revenue		/* Sub-query to get the total revenue from website_revenue */
 		FROM 	(SELECT id, 
-						name AS campaign_name
+						name AS campaign_name		/* Nested sub-query to get the campaign name */
 				FROM campaign_info) as c
 		INNER JOIN website_revenue AS w
 		ON w.campaign_id = c.id
@@ -89,13 +91,13 @@ SELECT 	wr.day_of_the_week,
 		wr.average_revenue - mp.average_cost AS average_profit,
         (wr.average_revenue - mp.average_cost) / mp.average_impressions AS average_profit_per_impression,
         (wr.average_revenue - mp.average_cost) / mp.average_clicks AS average_profit_per_click
-FROM 	(SELECT DAYNAME(date) AS day_of_the_week, 
-				AVG(revenue) AS average_revenue
+FROM 	(SELECT DAYNAME(date) AS day_of_the_week,  			/* Sub-query averages the revenue accross days of the week for days that have both */
+				AVG(revenue) AS average_revenue				/* recorded revenue (in website_revenue) and recorded cost (in marketing_performance) */
 		FROM website_revenue
         WHERE date in (SELECT DISTINCT date FROM marketing_performance)
 		GROUP BY day_of_the_week) AS wr
-INNER JOIN 	(SELECT DAYNAME(date) AS day_of_the_week, 
-					AVG(cost) AS average_cost, 
+INNER JOIN 	(SELECT DAYNAME(date) AS day_of_the_week, 		/* Sub-query averages the cost accross days of the week for days that have both */
+					AVG(cost) AS average_cost, 				/* recorded revenue (in website_revenue) and recorded cost (in marketing_performance) */
                     AVG(impressions) AS average_impressions, 
                     AVG(clicks) AS average_clicks
 			FROM marketing_performance
